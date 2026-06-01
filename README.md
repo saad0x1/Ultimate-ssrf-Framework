@@ -255,7 +255,8 @@ python ssrf_arsenal.py \
 --export-nuclei \
 --export-siem \
 --export-json-api \
---attack-map
+--attack-map \
+--dangerous-payloads
 ```
 
 Generated files may include:
