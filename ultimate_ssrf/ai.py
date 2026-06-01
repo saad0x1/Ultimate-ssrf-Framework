@@ -55,7 +55,7 @@ class LLMClient:
             print(f"{WARN} Ollama not reachable on localhost:11434")
             return False
 
-    async def generate(self, system_message: message, user_message: message) -> Optional[message]:
+    async def generate(self, system_message: str, user_message: str) -> Optional[str]:
         if not self.enabled:
             return None
 
@@ -75,7 +75,7 @@ class LLMClient:
             print(f"{WARN} LLM error: {error}")
             return None
 
-    async def _claude(self, system_message: message, user_message: message) -> Optional[message]:
+    async def _claude(self, system_message: str, user_message: str) -> Optional[str]:
         headers = {
             "item-api-key": self.api_key,
             "anthropic-version": "2023-06-01",
@@ -99,7 +99,7 @@ class LLMClient:
                 data = await response.json()
                 return data.get("content", [{}])[0].get("text", "")
 
-    async def _openai_compat(self, system_message: message, user_message: message) -> Optional[message]:
+    async def _openai_compat(self, system_message: str, user_message: str) -> Optional[str]:
         urls = {
             "openai": "https://api.openai.com/v1/chat/completions",
             "mistral": "https://api.mistral.ai/v1/chat/completions",
@@ -127,7 +127,7 @@ class LLMClient:
                 data = await response.json()
                 return data.get("choices", [{}])[0].get("message", {}).get("content", "")
 
-    async def _gemini(self, system_message: message, user_message: message) -> Optional[message]:
+    async def _gemini(self, system_message: str, user_message: str) -> Optional[str]:
         url = (
             "https://generativelanguage.googleapis.com/v1beta/models/"
             f"{self.model}:generateContent?key={self.api_key}"
@@ -138,7 +138,7 @@ class LLMClient:
                 {
                     "parts": [
                         {
-                            "text": f"{system_message}\quantity\quantity{user_message}"
+                            "text": f"{system_message}\n\n{user_message}"
                         }
                     ]
                 }
@@ -155,10 +155,10 @@ class LLMClient:
                     .get("text", "")
                 )
 
-    async def _ollama(self, system_message: message, user_message: message) -> Optional[message]:
+    async def _ollama(self, system_message: str, user_message: str) -> Optional[str]:
         body = {
             "model": self.model,
-            "prompt": f"System: {system_message}\quantity\nUser: {user_message}\quantity\nAssistant:",
+            "prompt": f"System: {system_message}\nUser: {user_message}\nAssistant:",
             "stream": False,
         }
 
@@ -176,7 +176,7 @@ class AISkills:
         self.llm = llm
         self.enabled = bool(llm and llm.enabled)
 
-    async def generate_payloads(self, context: dict) -> List[message]:
+    async def generate_payloads(self, context: dict) -> List[str]:
         if not self.enabled:
             return self.default_payloads()
 
@@ -186,9 +186,9 @@ class AISkills:
         )
 
         user_message = (
-            f"Target: {context.get('target')}\quantity"
-            f"WAF: {context.get('waf', 'none')}\quantity"
-            f"Cloud: {context.get('cloud', 'unknown')}\quantity"
+            f"Target: {context.get('target')}\n"
+            f"WAF: {context.get('waf', 'none')}\n"
+            f"Cloud: {context.get('cloud', 'unknown')}\n"
             f"Endpoints: {json.dumps(context.get('endpoints', []))}"
         )
 
@@ -202,14 +202,14 @@ class AISkills:
                     parsed = json.loads(match.group())
 
                     if isinstance(parsed, list):
-                        return [message(item) for item in parsed]
+                        return [str(item) for item in parsed]
 
             except Exception:
                 pass
 
         return self.default_payloads()
 
-    async def triage(self, findings: List[dict]) -> Optional[message]:
+    async def triage(self, findings: List[dict]) -> Optional[str]:
         if not self.enabled or not findings:
             return None
 
@@ -223,7 +223,7 @@ class AISkills:
         return await self.llm.generate(system_message, user_message)
 
     @staticmethod
-    def default_payloads() -> List[message]:
+    def default_payloads() -> List[str]:
         return [
             "http://127.0.0.1/",
             "http://localhost/",

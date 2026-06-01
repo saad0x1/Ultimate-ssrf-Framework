@@ -1,5 +1,6 @@
-# Ultimate SSRF Framework v4.2-experimental
+# Ultimate SSRF Framework v4.2 (Experimental)
 
+## Demo:
 <div align="center">
 
 ![Ultimate SSRF Framework Demo](docs/demo.gif)
@@ -18,9 +19,9 @@ A research-focused SSRF testing framework built for bug bounty hunting, penetrat
 
 ---
 
-## Important read first!!!
 
-This tool does not automatically prove impact. Findings should be manually validated before being reported.
+> [!WARNING]
+> This tool does not automatically prove impact. Findings should be manually validated before being reported.
 Blind SSRF confirmation depends on external OAST/Collaborator logs.
 Some modules are experimental and may produce false positives.
 
@@ -80,36 +81,50 @@ cd Ultimate-ssrf-Framework
 Install dependencies:
 
 ```bash
-pip install -r requirements.txt
+uv pip install -r requirements.txt
 ```
 
 Install Playwright:
 
 ```bash
-playwright install chromium
+uv run playwright install chromium
 ```
 
 Verify installation:
 
 ```bash
-python ssrf_arsenal.py --help
+uv run ssrf_arsenal.py --help
 ```
 
-Some Linux distributions, including Kali, block global `pip install` by default.  
+Some Linux distributions, including Kali, block global `uv pip install` by default.
 Using a virtual environment is recommended.
 
 ```bash
-python3 -m venv .venv
+uv venv
 source .venv/bin/activate
-python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
-python -m playwright install chromium
+uv pip install -r requirements.txt
 ```
 
-After activating the virtual environment, verify the installation:
+Or install it as a uv tool, which gives you the `ssrf-arsenal` command:
+
+```bash
+uv tool install git+github.com/KauanCosta2000/Ultimate-ssrf-Framework.git
+```
+
+For a local clone, run it with either:
+
+```bash
+uv run ssrf_arsenal.py --help
+```
 
 ```bash
 python ssrf_arsenal.py --help
+```
+
+If you installed it as a tool, run:
+
+```bash
+ssrf-arsenal --help
 ```
 
 ---
@@ -119,25 +134,25 @@ python ssrf_arsenal.py --help
 Single target:
 
 ```bash
-python ssrf_arsenal.py --target example.com
+uv run ssrf_arsenal.py --target example.com
 ```
 
 Multiple targets:
 
 ```bash
-python ssrf_arsenal.py --targets api.example.com,test.example.com
+uv run ssrf_arsenal.py --targets api.example.com,test.example.com
 ```
 
 Target file:
 
 ```bash
-python ssrf_arsenal.py --target-file targets.txt
+uv run ssrf_arsenal.py --target-file targets.txt
 ```
 
 Blind SSRF callback:
 
 ```bash
-python ssrf_arsenal.py \
+uv run ssrf_arsenal.py \
 --target example.com \
 --callback your-callback.oastify.com
 ```
@@ -149,7 +164,7 @@ python ssrf_arsenal.py \
 Display all available options:
 
 ```bash
-python ssrf_arsenal.py --help
+uv run ssrf_arsenal.py --help
 ```
 
 ### Target Selection
@@ -171,7 +186,7 @@ python ssrf_arsenal.py --help
 Example:
 
 ```bash
-python ssrf_arsenal.py \
+uv run ssrf_arsenal.py \
 --target example.com \
 --burp-collaborator abc123.burpcollaborator.net
 ```
@@ -249,7 +264,7 @@ The framework can generate:
 Use `--output` to specify where generated files should be saved:
 
 ```bash
-python ssrf_arsenal.py \
+uv run ssrf_arsenal.py \
 --target example.com \
 --output reports \
 --export-nuclei \
@@ -273,7 +288,7 @@ reports/
 Full example:
 
 ```bash
-python ssrf_arsenal.py \
+uv run ssrf_arsenal.py \
 --target example.com \
 --callback your-callback.oastify.com \
 --output reports \

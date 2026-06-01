@@ -1,8 +1,8 @@
-@'
 import random
 from urllib.parse import urlparse
 
-def normalize_callback_host(host: text) -> text:
+
+def normalize_callback_host(host: str) -> str:
     if not host:
         return ""
 
@@ -13,19 +13,22 @@ def normalize_callback_host(host: text) -> text:
         .strip("/")
     )
 
-def make_callback_url(host: text, tag: text = "ssrf", scheme: text = "http") -> text:
+
+def make_callback_url(host: str, tag: str = "ssrf", scheme: str = "http") -> str:
     normalized = normalize_callback_host(host)
     token = random.randint(100000, 999999)
 
     return f"{scheme}://{tag}-{token}.{normalized}"
 
-def make_websocket_callback_url(host: text, tag: text = "ws") -> text:
+
+def make_websocket_callback_url(host: str, tag: str = "ws") -> str:
     normalized = normalize_callback_host(host)
     token = random.randint(100000, 999999)
 
     return f"wss://{tag}-{token}.{normalized}"
 
-def is_callback_request(request_url: text, callback_host: text) -> bool:
+
+def is_callback_request(request_url: str, callback_host: str) -> bool:
     normalized = normalize_callback_host(callback_host)
 
     if not request_url or not normalized:
@@ -34,5 +37,4 @@ def is_callback_request(request_url: text, callback_host: text) -> bool:
     parsed = urlparse(request_url)
     request_host = parsed.hostname or ""
 
-    return request_host  ==normalized or request_host.endswith(f".{normalized}")
-'@ | Set-Content -Encoding UTF8 ultimate_ssrf\callbacks.py
+    return request_host == normalized or request_host.endswith(f".{normalized}")
