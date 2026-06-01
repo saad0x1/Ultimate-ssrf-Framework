@@ -1,8 +1,18 @@
 import json
+import sys
 from argparse import Namespace
 from pathlib import Path
 
-from ssrf_arsenal import SSRFEvidence, TargetManager, UltimateSSRFFramework, WAFFingerprinter
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from ssrf_arsenal import (
+    SSRFEvidence,
+    TargetManager,
+    UltimateSSRFFramework,
+    WAFFingerprinter,
+    setup_argparse,
+)
+
 
 def args_for_tests(tmp_path=None, **changes):
     args = {
@@ -21,6 +31,7 @@ def args_for_tests(tmp_path=None, **changes):
         "no_k8s": True,
         "no_serverless": True,
         "no_ai": True,
+        "dangerous_payloads": False,
         "export_nuclei": False,
         "export_siem": False,
         "export_json_api": False,
@@ -30,53 +41,93 @@ def args_for_tests(tmp_path=None, **changes):
         "ai_key": None,
         "ai_model": None,
     }
+
     args.update(changes)
     return Namespace(**args)
+
 
 def new_framework(tmp_path, **changes):
     return UltimateSSRFFramework("example.com", args_for_tests(tmp_path, **changes))
 
+
 def test_clean_target_strips_scheme_path_and_query():
-    assert TargetManager._clean("https://example.com/path?id=1")  == "example.com"
+    assert TargetManager._clean("https://example.com/path?id=1") == "example.com"
+
 
 def test_clean_target_handles_spaces():
-    assert TargetManager._clean("  http://api.example.com/test  ")  == "api.example.com"
+    assert TargetManager._clean("  http://api.example.com/test  ") == "api.example.com"
+
 
 def test_clean_target_returns_none_for_empty_value():
     assert TargetManager._clean("") is None
 
+
 def test_target_args_accept_single_target():
     args = Namespace(target="https://example.com/path", targets=None, target_file=None)
 
-    assert TargetManager.from_args(args)  == ["example.com"]
+    assert TargetManager.from_args(args) == ["example.com"]
+
 
 def test_target_args_accept_comma_list():
-    args = Namespace(target=None, targets="https://a.example.com,b.example.com/path", target_file=None)
+    args = Namespace(
+        target=None,
+        targets="https://a.example.com,b.example.com/path",
+        target_file=None,
+    )
 
-    assert TargetManager.from_args(args)  == ["a.example.com", "b.example.com"]
+    assert TargetManager.from_args(args) == ["a.example.com", "b.example.com"]
+
+
+def test_argparse_accepts_dangerous_payload_flag():
+    parser = setup_argparse()
+
+    args = parser.parse_args([
+        "--target",
+        "example.com",
+        "--dangerous-payloads",
+    ])
+
+    assert args.dangerous_payloads is True
+
 
 def test_waf_fingerprint_detects_cloudflare():
-    result = WAFFingerprinter().fingerprint(headers={"cf-ray": "abc123"}, body="", cookies={})
+    result = WAFFingerprinter().fingerprint(
+        headers={"cf-ray": "abc123"},
+        body="",
+        cookies={},
+    )
 
     assert result["detected"] is True
-    assert result["primary"]  == "Cloudflare"
+    assert result["primary"] == "Cloudflare"
+
 
 def test_waf_fingerprint_detects_aws_waf():
-    result = WAFFingerprinter().fingerprint(headers={"data-amzn-requestid": "123"}, body="", cookies={})
+    result = WAFFingerprinter().fingerprint(
+        headers={"x-amzn-requestid": "123"},
+        body="",
+        cookies={},
+    )
 
     assert result["detected"] is True
-    assert result["primary"]  == "AWS WAF"
+    assert result["primary"] == "AWS WAF"
+
 
 def test_waf_fingerprint_returns_empty_result_without_signals():
-    result = WAFFingerprinter().fingerprint(headers={}, body="", cookies={})
+    result = WAFFingerprinter().fingerprint(
+        headers={},
+        body="",
+        cookies={},
+    )
 
     assert result["detected"] is False
     assert result["primary"] is None
 
+
 def test_callback_host_is_normalized(tmp_path):
     framework = new_framework(tmp_path)
 
-    assert framework._callback_host()  == "abc.oastify.com"
+    assert framework._callback_host() == "abc.oastify.com"
+
 
 def test_callback_url_uses_tag_and_oast_host(tmp_path):
     framework = new_framework(tmp_path)
@@ -85,6 +136,7 @@ def test_callback_url_uses_tag_and_oast_host(tmp_path):
 
     assert callback_url.startswith("http://basic-")
     assert callback_url.endswith(".abc.oastify.com")
+
 
 def test_callback_context_can_be_found_later(tmp_path):
     framework = new_framework(tmp_path)
@@ -100,9 +152,10 @@ def test_callback_context_can_be_found_later(tmp_path):
 
     found = framework._find_callback_context("basic-123456.abc.oastify.com")
 
-    assert found["endpoint"]  == "/api"
-    assert found["param"]  == "url"
-    assert found["payload"]  == payload
+    assert found["endpoint"] == "/api"
+    assert found["param"] == "url"
+    assert found["payload"] == payload
+
 
 def test_callback_context_matches_nested_callback_hosts(tmp_path):
     framework = new_framework(tmp_path)
@@ -118,8 +171,9 @@ def test_callback_context_matches_nested_callback_hosts(tmp_path):
 
     found = framework._find_callback_context("nested.token.abc.oastify.com")
 
-    assert found["endpoint"]  == "/fetch"
-    assert found["param"]  == "uri"
+    assert found["endpoint"] == "/fetch"
+    assert found["param"] == "uri"
+
 
 def test_dedup_keeps_worst_severity_and_oob_count(tmp_path):
     framework = new_framework(tmp_path)
@@ -138,6 +192,7 @@ def test_dedup_keeps_worst_severity_and_oob_count(tmp_path):
             severity="high",
         )
     )
+
     framework.evidence.append(
         SSRFEvidence(
             phase="Basic",
@@ -157,8 +212,9 @@ def test_dedup_keeps_worst_severity_and_oob_count(tmp_path):
     grouped = framework._dedup()
 
     assert len(grouped) == 1
-    assert grouped[("/api", "url")]["max_sev"]  == "critical"
-    assert grouped[("/api", "url")]["oob"]  == 1
+    assert grouped[("/api", "url")]["max_sev"] == "critical"
+    assert grouped[("/api", "url")]["oob"] == 1
+
 
 def test_json_api_export_writes_a_small_summary(tmp_path):
     framework = new_framework(tmp_path, export_json_api=True)
@@ -173,6 +229,6 @@ def test_json_api_export_writes_a_small_summary(tmp_path):
     data = json.loads(report.read_text())
 
     assert report.exists()
-    assert data["target"]  == "example.com"
-    assert data["cloud"]  == ["AWS"]
-    assert data["callbacks"]  == 1
+    assert data["target"] == "example.com"
+    assert data["cloud"] == ["AWS"]
+    assert data["callbacks"] == 1
