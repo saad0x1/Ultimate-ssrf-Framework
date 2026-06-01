@@ -1,0 +1,11 @@
+- name: Run SSRF scan
+  run: |
+    docker run --rm \
+      -v ${{ github.workspace }}/output:/app/output \
+      -v ${{ github.workspace }}/targets.txt:/app/targets.txt:ro \
+      ghcr.io/kauancosta2000/ultimate-ssrf-framework:latest \
+      --target-file /app/targets.txt \
+      --burp-collaborator ${{ secrets.BURP_COLLABORATOR_HOST }} \
+      --output /app/output \
+      --quiet \
+      --delay 1
