@@ -281,7 +281,6 @@ python ssrf_arsenal.py \
 --export-nuclei \
 --export-siem \
 --export-json-api \
---attack-map
 ```
 
 ---
