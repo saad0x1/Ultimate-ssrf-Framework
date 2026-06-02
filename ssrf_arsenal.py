@@ -171,7 +171,7 @@ def setup_argparse():
     proxy_group.add_argument("--proxy-file", help="File with proxy list (one proxy per scan)")
     proxy_group.add_argument("--proxy-type", choices=["http","socks5"], default="http")
     ai_group = parser.add_argument_group("AI Integration (Optional)")
-    ai_group.add_argument("--ai-provider", choices=["claude","openai","ollama","gemini","mistral","deepseek","none"])
+    ai_group.add_argument("--ai-provider", choices=["claude","openai","ollama","gemini","mistral","deepseek","sheep","none"])
     ai_group.add_argument("--ai-key", help="API key for cloud AI")
     ai_group.add_argument("--ai-model", help="Specific model name")
     feature_group = parser.add_argument_group("Feature Control")
@@ -279,6 +279,7 @@ class LLMClient:
         "gemini": "gemini-2.0-flash-exp",
         "mistral": "mistral-large-latest",
         "deepseek": "deepseek-chat",
+        "sheep": "hunter",
     }
     def __init__(self, provider=None, api_key=None, model=None):
         self.provider = provider
@@ -307,6 +308,8 @@ class LLMClient:
                 return await self._gemini(sys_msg, usr_msg)
             if self.provider == "ollama":
                 return await self._ollama(sys_msg, usr_msg)
+            if self.provider == "sheep":
+                return await self._sheep(sys_msg, usr_msg)
             return await self._openai_compat(sys_msg, usr_msg)
         except Exception as e:
             print(f"{WARN} LLM error: {e}")
@@ -346,6 +349,36 @@ class LLMClient:
             async with s.post("http://localhost:11434/api/generate", json=body, timeout=120) as r:
                 data = await r.json()
                 return data.get("response","")
+
+    async def _sheep(self, sys_msg, usr_msg):
+        url = "https://sheep.byfranke.com/api/ai/ask"
+        model = self.model or "hunter"
+        if model not in {"auto", "scout", "hunter", "sage"}:
+            model = "hunter"
+        headers = {"X-Sheep-Token": self.api_key, "Content-Type": "application/json"}
+        body = {"question": f"{sys_msg}\n\n{usr_msg}", "model": model}
+        async with aiohttp.ClientSession() as s:
+            async with s.post(url, headers=headers, json=body, timeout=120) as r:
+                try:
+                    data = await r.json()
+                except Exception:
+                    data = {"text": await r.text()}
+                if r.status == 401:
+                    return "Sheep API authentication failed. Check your X-Sheep-Token."
+                if r.status == 402:
+                    return "Sheep API quota exhausted or subscription inactive."
+                if r.status == 403:
+                    return f"Sheep model '{model}' is not available in your plan."
+                if r.status == 429:
+                    retry_after = r.headers.get("Retry-After", "unknown")
+                    return f"Sheep API rate limit exceeded. Retry after: {retry_after} seconds."
+                if isinstance(data, dict):
+                    for key in ("answer", "response", "content", "text", "result", "message"):
+                        value = data.get(key)
+                        if isinstance(value, str) and value.strip():
+                            return value
+                    return json.dumps(data, ensure_ascii=False)
+                return str(data)
 
 class AISkills:
     def __init__(self, llm, dangerous_payloads: bool = False):
@@ -1021,10 +1054,12 @@ async def main():
                 args.collaborator = input("Callback/OAST host: ").strip()
 
         if args.ai_provider is None:
-            enable_ai = input(f"{WARN} Enable AI? (none/claude/openai/ollama/gemini/mistral/deepseek) [none]: ").strip().lower()
+            enable_ai = input(f"{WARN} Enable AI? (none/claude/openai/ollama/gemini/mistral/deepseek/sheep) [none]: ").strip().lower()
             if enable_ai and enable_ai != "none":
                 args.ai_provider = enable_ai
-                if enable_ai != "ollama":
+                if enable_ai == "sheep":
+                    args.ai_key = input(f"{WARN} Sheep API token: ").strip()
+                elif enable_ai != "ollama":
                     args.ai_key = input(f"{WARN} API key: ").strip()
                 model_choice = input(f"{WARN} Model (press Enter for default): ").strip()
                 if model_choice:
