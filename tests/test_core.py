@@ -90,6 +90,41 @@ def test_argparse_accepts_dangerous_payload_flag():
     assert args.dangerous_payloads is True
 
 
+def test_argparse_accepts_sheep_ai_provider():
+    parser = setup_argparse()
+
+    args = parser.parse_args([
+        "--target",
+        "example.com",
+        "--ai-provider",
+        "sheep",
+        "--ai-key",
+        "shp_test",
+        "--ai-model",
+        "hunter",
+    ])
+
+    assert args.ai_provider == "sheep"
+    assert args.ai_key == "shp_test"
+    assert args.ai_model == "hunter"
+
+
+def test_argparse_accepts_sheep_ai_models_as_plain_value():
+    parser = setup_argparse()
+
+    args = parser.parse_args([
+        "--target",
+        "example.com",
+        "--ai-provider",
+        "sheep",
+        "--ai-model",
+        "auto",
+    ])
+
+    assert args.ai_provider == "sheep"
+    assert args.ai_model == "auto"
+
+
 def test_waf_fingerprint_detects_cloudflare():
     result = WAFFingerprinter().fingerprint(
         headers={"cf-ray": "abc123"},
