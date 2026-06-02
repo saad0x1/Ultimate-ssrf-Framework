@@ -194,6 +194,10 @@ python ssrf_arsenal.py \
 
 ### Sheep AI Experimental Support
 
+READ THE DOCS FOR BETTER USAGE!!! 
+
+https://sheep.byfranke.com/pages/api < English and Portuguese.
+
 Sheep AI support is currently experimental and may change in future versions.
 
 Sheep AI is supported through the `sheep` provider.
