@@ -188,30 +188,15 @@ python ssrf_arsenal.py \
 
 ```text
 --ai-provider          claude | openai | ollama | gemini | mistral | deepseek | sheep | none
---ai-key               API key or Sheep API token
+--ai-key               API key
 --ai-model             Specific model name
 ```
 
-### Sheep AI Experimental Support
+#### Using the Sheep token safely
 
 READ THE DOCS FOR BETTER USAGE!!! 
 
 https://sheep.byfranke.com/pages/api < English and Portuguese.
-
-Sheep AI support is currently experimental and may change in future versions.
-
-Sheep AI is supported through the `sheep` provider.
-
-Available models:
-
-```text
-auto    Lets Sheep choose between Scout and Hunter automatically.
-scout   Best for quick answers, short definitions and lightweight explanations.
-hunter  Best default option for security analysis, vulnerability triage, logs, APTs and MITRE ATT&CK mapping.
-sage    Best for deeper reports, executive summaries, attribution and multi-incident correlation.
-```
-
-#### Using the Sheep token safely
 
 Sheep AI support is experimental.
 
