@@ -187,8 +187,8 @@ python ssrf_arsenal.py \
 ### AI Integration
 
 ```text
---ai-provider          claude | openai | ollama | gemini | mistral | deepseek | none
---ai-key               API key for cloud AI providers
+--ai-provider          claude | openai | ollama | gemini | mistral | deepseek | sheep | none
+--ai-key               API key or Sheep API token
 --ai-model             Specific model name
 ```
 
