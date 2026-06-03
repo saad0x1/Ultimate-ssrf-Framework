@@ -6,11 +6,7 @@ Security updates are currently provided for the following versions:
 
 | Version | Supported |
 | ------- | --------- |
-| v4.1.x  | ✅         |
-| v4.0.x  | ❌         |
-| < v4.0  | ❌         |
-
-Users should upgrade to the latest supported release whenever possible.
+| v4.1.x  |    Yes    |
 
 ---
 

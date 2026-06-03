@@ -16,6 +16,8 @@
 
 A framework for SSRF discovery, validation, and reporting, built for bug bounty hunting, penetration testing, and application security research.
 
+Created and maintained by **belladonnask**.
+
 </div>
 
 ---
@@ -28,6 +30,12 @@ A framework for SSRF discovery, validation, and reporting, built for bug bounty 
 > Blind SSRF confirmation relies on external OAST or Collaborator services.
 >
 > Some experimental modules may produce false positives.
+
+`not_confirmed` does not mean the target is safe. It only means the scanner did not confirm SSRF for that specific endpoint, parameter and payload.
+
+Reports may include tested payloads, callback domains, internal IP references and scanned URLs. Review generated files before sharing them publicly.
+
+---
 
 ## About
 
@@ -69,8 +77,9 @@ Its purpose is straightforward: reduce repetitive work and make SSRF testing eas
 * HTML reporting
 * JSON reporting
 * Nuclei export
-* SIEM (CEF) export
-* Attack map generation
+* SIEM CEF export
+* GEXF attack map generation
+* Proxy support
 
 ### Supported Cloud Providers
 
@@ -105,7 +114,19 @@ An optional aggressive mode enables additional protocol-specific payloads, inclu
 
 ## Reporting
 
-The framework can generate:
+The framework can generate multiple report formats for different workflows.
+
+Supported outputs:
+
+```text
+.json   Full scan data, including endpoints, evidence, callbacks and tested payloads
+.html   Human-readable report with findings and payload attempts
+.cef    SIEM-friendly CEF export
+.gexf   Attack map graph for visualization tools such as Gephi
+.md     Optional AI triage summary when AI is enabled
+```
+
+The report tracks each tested payload and classifies every attempt as:
 
 * HTML reports
 * JSON reports
@@ -129,6 +150,66 @@ reports/
 
 ---
 
+## Helper Scripts
+
+The repository may include helper scripts for common workflows.
+
+Basic scan:
+
+```bash
+./basic_scan.sh
+```
+
+Proxy scan:
+
+```bash
+./proxy_scan.sh
+```
+
+AI scan:
+
+```bash
+./ai_scan.sh
+```
+
+Export-focused scan:
+
+```bash
+./export_scan.sh
+```
+
+Example with custom variables:
+
+```bash
+TARGET=example.com CALLBACK=your-callback.oastify.com ./basic_scan.sh
+```
+
+Sheep AI helper example:
+
+```bash
+AI_PROVIDER=sheep AI_MODEL=hunter AI_KEY="$SHEEP_TOKEN" ./ai_scan.sh
+```
+
+---
+
+## Testing
+
+Run syntax check:
+
+```bash
+python -m py_compile ssrf_arsenal.py
+```
+
+Run tests:
+
+```bash
+python -m pytest -v
+```
+
+GitHub Actions can be used to run CI automatically on push and pull requests.
+
+---
+
 ## Development Status
 
 The project is actively maintained and new modules are added as SSRF research and testing techniques evolve.
@@ -140,6 +221,9 @@ Current research areas include:
 * Kubernetes SSRF
 * Serverless SSRF
 * AI-assisted workflows
+* Sheep AI integration
+* Payload attempt tracking
+* Multi-format reporting
 
 Several of these modules remain experimental and may change significantly between releases.
 
@@ -157,6 +241,8 @@ Planned areas of development include:
 * OWASP ZAP integration
 * Slack notifications
 * Discord notifications
+* Better AI-assisted triage templates
+* Better report diffing between scans
 
 ---
 
@@ -171,6 +257,32 @@ Before opening a pull request, please review:
 
 ---
 
+## Limitations
+
+* The scanner cannot prove that a target is safe.
+* Lack of callback does not prove lack of SSRF.
+* Some findings may be false positives and require manual validation.
+* Some applications block outbound requests or sanitize payloads before execution.
+* Some modules are experimental and may require tuning.
+* AI output may be incomplete, noisy or wrong.
+* Payload behavior should be reviewed before testing sensitive environments.
+
+---
+
+## Responsible Use
+
+This project is intended for:
+
+* Authorized penetration testing
+* Bug bounty programs where testing is allowed
+* Internal security assessments
+* Controlled lab environments
+* Research and learning
+
+Do not use this tool against systems without permission.
+
+---
+
 ## Author
 
 Developed by **Belladonnask**
@@ -181,6 +293,8 @@ Developed by **Belladonnask**
 Licensed under the MIT License.
 
 Copyright © Kauan Costa.
+
+See the repository license file for details.
 
 ---
 
