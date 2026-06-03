@@ -2,7 +2,7 @@
 
 ## Supported Versions
 
-The following versions currently receive security updates:
+Security updates are currently provided for the following versions:
 
 | Version | Supported |
 | ------- | --------- |
@@ -10,47 +10,50 @@ The following versions currently receive security updates:
 | v4.0.x  | ❌         |
 | < v4.0  | ❌         |
 
-Users are encouraged to upgrade to the latest release.
+Users should upgrade to the latest supported release whenever possible.
 
 ---
 
-## Reporting Process
+## Reporting a Security Issue
 
-If you discover a security issue in Ultimate SSRF Framework, please report it responsibly.
+If you discover a security vulnerability in Ultimate SSRF Framework, report it privately and allow time for review before public disclosure.
 
-Do not publicly disclose vulnerabilities until they have been reviewed.
-
-Reports may be submitted through:
+Reports can be submitted through:
 
 * GitHub Security Advisories
-* GitHub Issues (for non-sensitive issues)
+* GitHub Issues (for non-sensitive reports)
 * Direct contact with the maintainer
 
-Please include:
+Please include the following information where possible:
 
-* Detailed description
-* Steps to reproduce
-* Proof of concept (if available)
-* Impact assessment
+* A clear description of the issue
+* Steps to reproduce the vulnerability
+* Proof of concept or supporting evidence
+* Expected impact
+* Affected version or commit
+
+Providing complete information helps speed up investigation and validation.
 
 ---
 
-## Response Expectations
+## Response Timeline
 
-We aim to acknowledge security reports within:
+While response times may vary, the following targets are used as general guidelines:
 
-* Initial acknowledgement: 72 hours
-* Initial assessment: 7 days
-* Status updates: as needed
-* Fix timeline: depends on severity and complexity
+| Stage                  | Target                           |
+| ---------------------- | -------------------------------- |
+| Initial acknowledgment | Within 72 hours                  |
+| Initial assessment     | Within 7 days                    |
+| Status updates         | As needed                        |
+| Remediation timeline   | Based on severity and complexity |
 
-Please note that response times may vary depending on maintainer availability.
+Response times may be affected by maintainer availability and the nature of the reported issue.
 
 ---
 
 ## Scope
 
-This policy applies to:
+This policy covers security issues affecting:
 
 * Source code
 * Documentation
@@ -58,23 +61,36 @@ This policy applies to:
 * Docker configuration
 * Release artifacts
 
-The following are generally out of scope:
+The following are generally considered out of scope:
 
-* Third-party dependencies
-* Vulnerabilities requiring local machine compromise
+* Vulnerabilities in third-party dependencies
+* Issues that require prior compromise of a user's system
 * Social engineering attacks
-* Denial of service against public GitHub infrastructure
+* Denial-of-service attacks against GitHub infrastructure
+* Reports based solely on theoretical impact without a reproducible issue
 
 ---
 
 ## Responsible Disclosure
 
-We appreciate responsible disclosure and security research.
+Responsible disclosure helps protect users while allowing vulnerabilities to be investigated and fixed.
 
-Please avoid:
+Please:
 
-* Public disclosure before remediation
-* Accessing systems you do not own or have permission to test
-* Actions that could negatively impact users or contributors
+* Report vulnerabilities privately.
+* Allow reasonable time for review and remediation.
+* Avoid actions that could disrupt services, damage systems, or affect other users.
 
-Thank you for helping improve the security of this project.
+Please do not:
+
+* Publish vulnerability details before a fix is available.
+* Access data, accounts, or systems without authorization.
+* Perform testing outside environments you own or are authorized to assess.
+
+---
+
+## Acknowledgment
+
+Security research and responsible disclosure are appreciated.
+
+Thank you to everyone who helps identify and report security issues.

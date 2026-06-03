@@ -1,76 +1,122 @@
-Contributing
+# Contributing
 
-Thank you for considering contributions to Ultimate SSRF Arsenal.
+Thank you for contributing to Ultimate SSRF Arsenal.
 
-All forms of contributions are highly appreciated, such as:
+Contributions of all sizes are welcome, including:
 
-Bug fixes
-SSRF techniques
-Payloads
-WAF signatures
-Cloud metadata analysis
-Optimizations
-AI capabilities
-Getting Started
-Fork the repository.
-Create a feature branch.
+* Bug fixes
+* SSRF research and techniques
+* Payload improvements
+* WAF signatures and detection logic
+* Cloud metadata research
+* Performance optimizations
+* AI-related features and integrations
+* Documentation improvements
+
+## Getting started
+
+1. Fork the repository.
+
+2. Create a feature branch.
+
+```bash
 git checkout -b feature/my-feature
-Modify the code.
-Commit your changes.
-git commit -m "New feature added"
-Push changes to your fork.
+```
+
+3. Make your changes.
+
+4. Commit your work.
+
+```bash
+git commit -m "Add new feature"
+```
+
+5. Push the branch to your fork.
+
+```bash
 git push origin feature/my-feature
-Submit Pull Request.
-Development
-Coding guidelines
-Maintain clean code.
-Use expressive variables and function names.
-Adhere to project conventions wherever possible.
-Minimize dependencies.
-Pull Requests
-Ensure that:
-Everything is working fine.
-No existing features were affected.
-Update documentation if necessary.
-Pull request remains focused on one thing at a time.
-Specific areas where contributions are welcome:
-Research
-New SSRF exploits
-Protocol smuggling
-DNS rebinding
-Cloud metadata
-WAF bypasses
-AI
-More LLM services
-Prompt engineering
-Payload generation
-Vulnerability triage
-Reporting
-Report improvements
-Dashboards
-Reports export formats
-Visualization features
-Integrations
-Burp Suite
-OWASP ZAP
-Nuclei
-DefectDojo
-Slack
-Discord
-Security Vulnerabilities
+```
 
-Never share any vulnerability information publicly.
+6. Open a pull request.
 
-For responsible disclosure please see SECURITY.md.
+---
 
-Code of Conduct
+## Development guidelines
 
-Being respectful and constructive.
+When contributing code:
 
-Any kind of harassment, discrimination, spam, or inappropriate behaviour will not be tolerated.
+* Keep implementations simple and maintainable.
+* Use clear, descriptive variable and function names.
+* Follow existing project conventions.
+* Avoid unnecessary dependencies.
+* Include comments only where they add value.
 
-Questions
+---
 
-If you have any questions or suggestions regarding future development, don't hesitate to create an issue.
+## Pull requests
 
-Happy hunting.
+Before submitting a pull request, ensure that:
+
+* The changes work as intended.
+* Existing functionality has not been broken.
+* Documentation has been updated when required.
+* The pull request focuses on a single feature, fix, or improvement.
+
+---
+
+## Areas for contribution
+
+### Research
+
+* New SSRF techniques
+* Protocol smuggling research
+* DNS rebinding techniques
+* Cloud metadata testing
+* WAF bypass research
+
+### AI
+
+* Additional LLM provider support
+* Prompt engineering improvements
+* Payload generation enhancements
+* Finding triage and classification
+
+### Reporting
+
+* Report improvements
+* Dashboard development
+* Additional export formats
+* Visualization features
+
+### Integrations
+
+* Burp Suite
+* OWASP ZAP
+* Nuclei
+* DefectDojo
+* Slack
+* Discord
+
+---
+
+## Security vulnerabilities
+
+Do not disclose vulnerabilities publicly.
+
+For responsible disclosure procedures, see `SECURITY.md`.
+
+---
+
+## Code of conduct
+
+Treat other contributors with respect and professionalism.
+
+Harassment, discrimination, spam, abusive behavior, or any other inappropriate conduct will not be tolerated.
+
+---
+
+## Questions and feedback
+
+Suggestions, ideas, and feedback are welcome through GitHub Issues.
+
+Thank you for helping improve Ultimate SSRF Arsenal.

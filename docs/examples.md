@@ -1,66 +1,33 @@
-\# Examples
+# Examples
 
-
-
-\## Basic Scan
-
-
+## Basic Scan
 
 ```bash
-
-python ssrf\_arsenal.py --target example.com
-
+python ssrf_arsenal.py --target example.com
 ```
 
-
-
-\## Target File
-
-
+## Target File
 
 ```bash
-
-python ssrf\_arsenal.py --target-file targets.txt
-
+python ssrf_arsenal.py --target-file targets.txt
 ```
 
-
-
-\## Burp Collaborator
-
-
+## Burp Collaborator
 
 ```bash
-
-python ssrf\_arsenal.py \\
-
-\--target example.com \\
-
-\--burp-collaborator abc.burpcollaborator.net
-
+python ssrf_arsenal.py \
+--target example.com \
+--burp-collaborator abc.burpcollaborator.net
 ```
 
-
-
-\## Full Export
-
-
+## Full Export
 
 ```bash
-
-python ssrf\_arsenal.py \\
-
-\--target example.com \\
-
-\--output reports \\
-
-\--export-nuclei \\
-
-\--export-siem \\
-
-\--export-json-api \\
-
-\--attack-map
-
+python ssrf_arsenal.py \
+--target example.com \
+--output reports \
+--export-nuclei \
+--export-siem \
+--export-json-api \
+--attack-map
 ```
-

@@ -13,6 +13,7 @@ def setup_argparse():
     target_group.add_argument("--target-file", "-f", help="File with targets (one per line)")
 
     parser.add_argument("--callback", "-c", help="OOB callback host")
+    parser.add_argument("--dangerous-payloads", action="store_true", help="Enable dangerous/destructive payloads")
     parser.add_argument("--collaborator", help="Alias for --callback / OAST host")
     parser.add_argument("--burp-collaborator", help="Burp Collaborator host")
     parser.add_argument("--delay", "-d", type=float, default=0.5)

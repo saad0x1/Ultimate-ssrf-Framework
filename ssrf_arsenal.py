@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-import asyncio, json, random, re, urllib.parse, os, sys, socket, argparse
-from dataclasses import dataclass, asdict
-from datetime import datetime
-from typing import List, Dict, Optional, Set, Tuple
-from collections import defaultdict
+import asyncio, json, random, re, urllib.parse, sys, socket
 from pathlib import Path
-from playwright.async_api import async_playwright, Response, Page
+from collections import defaultdict
+from datetime import datetime
+from typing import List, Dict, Optional, Set
+import signal
+
+from playwright.async_api import async_playwright
 
 try:
     import aiohttp
@@ -31,7 +32,6 @@ try:
 except ImportError:
     NETWORKX_AVAILABLE = False
 
-from ultimate_ssrf.ai import LLMClient, AISkills
 from ultimate_ssrf.cli import setup_argparse
 from ultimate_ssrf.payloads import DEFAULT_SSRF_PAYLOADS, DANGEROUS_SSRF_PAYLOADS
 from ultimate_ssrf.models import SSRFEvidence, DiscoveredEndpoint
@@ -287,7 +287,8 @@ class WAFFingerprinter:
 class UltimateSSRFFramework:
     def __init__(self, target, args):
         self.target = target
-        self.base = f"https://{target}" if not target.startswith("http") else target
+        parsed = urllib.parse.urlparse(target)
+        self.base = target if parsed.scheme else f"http://{target}"
         self.cb = (
             args.callback
             or args.collaborator
@@ -367,8 +368,21 @@ class UltimateSSRFFramework:
         self.page = await ctx.new_page()
 
     async def stop(self):
-        if self.browser: await self.browser.close()
-        if self.playwright: await self.playwright.stop()
+        try:
+            if self.page:
+                await self.page.close()
+        except:
+         pass
+        try:
+            if self.browser:
+                await self.browser.close()
+        except:
+            pass
+        try:
+            if self.playwright:
+             await self.playwright.stop()
+        except:
+         pass
 
     async def _intercept(self, route):
         req = route.request
@@ -870,7 +884,13 @@ td{padding:8px;border-bottom:1px solid #333}
         finally:
             await self.stop()
 
+
+def _sigint_handler(sig, frame):
+    print("\n[!] Interrupted by user.")
+    sys.exit(130)
+
 async def main():
+    signal.signal(signal.SIGINT, _sigint_handler)
     parser = setup_argparse()
     args = parser.parse_args()
     print(BANNER)
@@ -909,7 +929,10 @@ async def main():
 
     for i, t in enumerate(targets, 1):
         print(f"\n{BOLD}{YELLOW}[{i}/{len(targets)}]{RESET} Scanning: {t}")
-        await UltimateSSRFFramework(t, args).run()
+        try:
+            await UltimateSSRFFramework(t, args).run()
+        except Exception as e:
+            print("\n[INTERRUPTED]" if isinstance(e, KeyboardInterrupt) else f"\n{FAIL} Error: {e}")
         if i < len(targets):
             await asyncio.sleep(5)
 

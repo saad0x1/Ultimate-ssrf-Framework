@@ -1,12 +1,31 @@
 __pycache__/
 *.pyc
+
 .venv/
 venv/
 env/
+
 .env
+
+# build / packaging
+dist/
+build/
+*.egg-info/
+.eggs/
+
+# uv / python tooling
+uv.lock
+.uv/
+.pytest_cache/
+
+# reports / outputs
 reports/
 *.json
 *.html
+
+# playwright
 playwright-report/
+
+# IDEs
 .vscode/
 .idea/
