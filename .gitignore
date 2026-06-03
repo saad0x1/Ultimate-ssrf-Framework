@@ -10,3 +10,11 @@ reports/
 playwright-report/
 .vscode/
 .idea/
+reports*/
+*.cef
+*.gexf
+ai_payloads_*.json
+ai_triage_*.md
+api_report_*.json
+ssrf_*.json
+ssrf_report_*.html
